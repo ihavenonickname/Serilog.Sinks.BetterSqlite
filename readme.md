@@ -2,6 +2,10 @@
 
 The Serilog.Sinks.SQLite.Alternative sink provides a robust and flexible mechanism for logging Serilog events directly into a SQLite database. Its design balances performance, configurability, and maintainability.
 
+> **Important note**
+>
+> This project is under development. It's almost production-ready, but not quite there yet!
+
 ## Highlights
 
 - **Batch Logging**: Log events are buffered and written to the database in batches, reducing I/O overhead and improving overall performance. The batch size and flush interval can be configured to balance latency and throughput.
