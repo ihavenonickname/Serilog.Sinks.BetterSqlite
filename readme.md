@@ -58,7 +58,7 @@ Of course, that's just the default behavior. Take a look at the documentation to
 
 The project wiki contains everything you need to know to use this library, including complete sample applications that you can use for reference.
 
-- TODO: link to wiki
+- https://github.com/ihavenonickname/Serilog.Sinks.Sqlite.Alternative/wiki
 
 ## Why not `Serilog.Sinks.SQLite`?
 
