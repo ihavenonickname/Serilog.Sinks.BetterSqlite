@@ -8,15 +8,13 @@ The Serilog.Sinks.SQLite.Alternative sink provides a robust and flexible mechani
 
 ## Highlights
 
-- **Batch Logging**: Log events are buffered and written to the database in batches, reducing I/O overhead and improving overall performance. The batch size and flush interval can be configured to balance latency and throughput.
-- **Structured Log Storage**: Log entries store full structured information, including timestamp, log level, message template, rendered message, and optional trace/span identifiers. Exceptions associated with log events are stored in a separate table, capturing type, message, stack trace, and source.
-- **Time Zone Awareness**: Timestamps are automatically converted to a configurable TimeZoneInfo, enabling consistent log reporting across different environments and regions.
-- **Database Rotation**: The sink supports automatic rotation of the SQLite database based on configurable age and file size thresholds. Upon rotation, the current database is archived, and a new database is created for subsequent log entries. This helps prevent unbounded growth of the log store.
-- **Retention Management**: Archived databases can be automatically pruned according to retention rules, including maximum file count or retention interval. This ensures long-term log storage does not consume excessive disk space.
-- **Concurrency-Safe Writes**: Internal synchronization ensures that multiple batches are written safely, maintaining database consistency without requiring external locking mechanisms.
+- **Batch Logging**: Uses the modern [batching API provided by Serilog](https://github.com/serilog/serilog/pull/2055).
+- **Structured Log Storage**: Log events are stored with full structured information, including timestamp, log level, message template, rendered message, and optional trace/span identifiers. Exceptions associated with log events (including all chain of `InnerException`s) are stored in a separate table, capturing type, message, stack trace, and source.
+- **Time Zone Awareness**: Log timestamps can be configured to use any timezone available in the system.
+- **Database Rotation**: The sink supports automatic rotation of the SQLite database based on configurable age and size thresholds.
+- **Retention Management**: Archived databases can be automatically pruned.
+- **Async-friendly**: Internal implementation uses async APIs that don't block threads.
 - **Integration with Microsoft.Extensions.Logging**: The sink can be used seamlessly with Serilog’s Microsoft.Extensions.Logging integration, allowing logs from both application code and framework events to be captured consistently.
-- **Configurable Formatting**: Message rendering can leverage a custom IFormatProvider if needed, giving control over formatting of culture-sensitive values.
-- **Lightweight and Self-Contained**: The sink depends solely on SQLite and standard .NET libraries, avoiding external dependencies while providing all core logging capabilities.
 
 ## Getting started
 
@@ -54,7 +52,7 @@ app.MapGet("/", (ILogger<Program> logger) =>
 app.Run();
 ```
 
-Once you run the app, it'll create a `logs` directory in your current working directly, and a SQLite database inside it.
+Once you run the app, it creates a `logs` directory in your current working directory and a SQLite database inside it.
 
 Of course, that's just the default behavior. Take a look at the documentation to see how to configure the library.
 
