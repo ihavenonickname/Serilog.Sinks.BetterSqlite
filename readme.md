@@ -62,7 +62,21 @@ The project wiki contains everything you need to know to use this library, inclu
 
 ## Why not `Serilog.Sinks.SQLite`?
 
-TODO
+There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/serilog-sinks-sqlite) that is older and more popular than this one. So, why should you use `Serilog.Sinks.SQLite.Alternative` instead?
+
+- `Serilog.Sinks.SQLite` is abandoned:
+    - Latest commit is over 2 years old as of the time of the writing
+    - Author does not respond to issues anymore
+- `Serilog.Sinks.SQLite` lacks important features:
+    - No support for any form of file retention policies (only rotation policies)
+    - No support for custom timezones (only UTC and Local)
+    - No support for customization of batching behavior beyond batch size
+- `Serilog.Sinks.SQLite` has dubious design choices:
+    - Discards logs if the database file is not rotated
+    - Uses blocking APIs instead of asynchronous APIs
+    - Implements its own batching mechanism instead of using Serilog's official batching API
+
+`Serilog.Sinks.SQLite.Alternative` fixes all of these issues.
 
 ## Roadmap
 
