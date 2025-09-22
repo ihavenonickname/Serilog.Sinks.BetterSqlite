@@ -9,7 +9,7 @@ The Serilog.Sinks.SQLite.Alternative sink provides a robust and flexible mechani
 ## Highlights
 
 - **Batch Logging**: Uses the modern [batching API provided by Serilog](https://github.com/serilog/serilog/pull/2055).
-- **Structured Log Storage**: Log events are stored with full structured information, including timestamp, log level, message template, rendered message, and optional trace/span identifiers. Exceptions associated with log events (including all chain of `InnerException`s) are stored in a separate table, capturing type, message, stack trace, and source.
+- **Structured Log Storage**: Log events are stored with full structured information, including timestamp, log level, message template, rendered message, and optional trace/span identifiers. Exceptions associated with log events (including all chain of `InnerException`s) are also stored, capturing type, message, stack trace, and source.
 - **Time Zone Awareness**: Log timestamps can be configured to use any timezone available in the system.
 - **Database Rotation**: The sink supports automatic rotation of the SQLite database based on configurable age and size thresholds.
 - **Retention Management**: Archived databases can be automatically pruned.
@@ -61,7 +61,7 @@ app.Run();
 
 Once you run the app, it creates a SQLite database inside the current working directory.
 
-Of course, that's just the default behavior. Take a look at the documentation to see how to configure the library.
+Of course, that's just a tiny example. Take a look at the documentation to see more!
 
 ## Documentation
 
@@ -91,7 +91,7 @@ There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/seril
 
 - [ ] Make database file name be configurable
 - [ ] Store log event properties
-- [ ] Benchmark tests
+- [ ] Add benchmark tests
 - [ ] Wirte xmldoc documentation
 - [ ] Write wiki
 - [ ] Publish project on NuGet
