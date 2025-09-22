@@ -31,8 +31,15 @@ Here's a quick ASP.NET app example:
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
+var serilogBatchingOptions = new BatchingOptions()
+{
+    BatchSizeLimit = 1,
+};
+
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.SQLite()
+    .WriteTo.SQLite(
+        logDirectory: new(Directory.GetCurrentDirectory()),
+        batchingOptions: serilogBatchingOptions)
     .CreateLogger();
 
 builder.Logging.AddSerilog();
@@ -41,18 +48,18 @@ var app = builder.Build();
 
 app.MapGet("/", (ILogger<Program> logger) =>
 {
-	logger.LogInformation("Custom log");
+	logger.LogInformation("Hello, SQLite!");
 
     return new
     {
-    	Hello = "World!"
+    	Hello = "World"
     };
 });
 
 app.Run();
 ```
 
-Once you run the app, it creates a `logs` directory in your current working directory and a SQLite database inside it.
+Once you run the app, it creates a SQLite database inside the current working directory.
 
 Of course, that's just the default behavior. Take a look at the documentation to see how to configure the library.
 
@@ -82,7 +89,12 @@ There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/seril
 
 ## Roadmap
 
-TODO
+- [ ] Make database file name be configurable
+- [ ] Store log event properties
+- [ ] Benchmark tests
+- [ ] Wirte xmldoc documentation
+- [ ] Write wiki
+- [ ] Publish project on NuGet
 
 ## License
 
@@ -92,4 +104,4 @@ You can redistribute it and/or modify it under the terms of the GNU GPL as publi
 
 This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the [GNU General Public License](https://www.gnu.org/licenses/) for more details.
 
-A copy of the GNU General Public License is provided in the [`LICENSE`](./LICENSE) file in this repository. If not, see <https://www.gnu.org/licenses/>.
+A copy of the GNU General Public License is provided in the [`LICENSE`](./LICENSE) file in this repository.
