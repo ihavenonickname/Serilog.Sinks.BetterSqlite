@@ -268,23 +268,35 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
     private async Task CheckAndApplyRotation()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         var shouldRotate = false;
 
-        _databaseFile.Refresh();
-
-        if (_fileRotationAgeLimit is not null && now - _databaseFile.CreationTimeUtc > _fileRotationAgeLimit)
+        if (_fileRotationAgeLimit is not null)
         {
-            Debugging.SelfLog.WriteLine("Rotating file due to age limit");
+            await using var command = _connection.CreateCommand();
 
-            shouldRotate = true;
+            command.CommandText = "select min(timestamp) from logs;";
+
+            var reader = await command.ExecuteReaderAsync(_cts.Token);
+
+            if (await reader.ReadAsync(_cts.Token) && !reader.IsDBNull(0) && now.Subtract(reader.GetDateTimeOffset(0)) > _fileRotationAgeLimit)
+            {
+                Debugging.SelfLog.WriteLine("Rotating file due to age limit");
+
+                shouldRotate = true;
+            }
         }
-        else if (_fileRotationSizeLimit is not null && _databaseFile.Length > _fileRotationSizeLimit)
+        else if (_fileRotationSizeLimit is not null)
         {
-            Debugging.SelfLog.WriteLine("Rotating file due to size limit");
+            _databaseFile.Refresh();
 
-            shouldRotate = true;
+            if (_databaseFile.Length > _fileRotationSizeLimit)
+            {
+                Debugging.SelfLog.WriteLine("Rotating file due to size limit");
+
+                shouldRotate = true;
+            }
         }
 
         if (!shouldRotate || _cts.IsCancellationRequested)

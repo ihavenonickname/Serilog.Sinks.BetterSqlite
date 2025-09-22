@@ -30,21 +30,21 @@ public class FileRotationTests : TestBase
                 logger.Information(_largeMessage);
             }
 
-            await Task.Delay(_shortInterval * 2);
+            await Task.Delay(_shortInterval * 5);
 
             for (var i = 0; i < 15; i++)
             {
                 logger.Information(_largeMessage);
             }
 
-            await Task.Delay(_shortInterval * 2);
+            await Task.Delay(_shortInterval * 5);
 
             for (var i = 0; i < 15; i++)
             {
                 logger.Information(_largeMessage);
             }
 
-            await Task.Delay(_shortInterval * 2);
+            await Task.Delay(_shortInterval * 5);
 
         });
 
@@ -70,15 +70,15 @@ public class FileRotationTests : TestBase
         {
             logger.Information(_largeMessage);
 
-            await Task.Delay(_shortInterval * 2);
+            await Task.Delay(_shortInterval * 5);
 
             logger.Information(_largeMessage);
 
-            await Task.Delay(_shortInterval * 2);
+            await Task.Delay(_shortInterval * 5);
 
             logger.Information(_largeMessage);
 
-            await Task.Delay(_shortInterval * 2);
+            await Task.Delay(_shortInterval * 5);
         });
 
         // Assert
@@ -103,15 +103,51 @@ public class FileRotationTests : TestBase
         {
             logger.Information(_largeMessage);
 
-            await Task.Delay(ageLimit + _shortInterval * 2);
+            await Task.Delay(ageLimit + _shortInterval * 5);
 
             logger.Information(_largeMessage);
 
-            await Task.Delay(ageLimit + _shortInterval * 2);
+            await Task.Delay(ageLimit + _shortInterval * 5);
 
             logger.Information(_largeMessage);
 
-            await Task.Delay(ageLimit + _shortInterval * 2);
+            await Task.Delay(ageLimit + _shortInterval * 5);
+        });
+
+        // Assert
+        var backupFiles = _logDirectory.GetFiles("*.db.backup");
+
+        Assert.Equal(3, backupFiles.Length);
+    }
+
+    [Fact]
+    public async Task FileRotatesOnAgeLimitWithCustomTimeZone()
+    {
+        // Arrange
+        var ageLimit = TimeSpan.FromMilliseconds(100);
+
+        var loggerConfiguration = new LoggerConfiguration()
+            .WriteTo.SQLite(
+                logDirectory: _logDirectory,
+                batchingOptions: _batchingOptions,
+                fileRotationAgeLimit: ageLimit,
+                fileRotationInterval: _shortInterval,
+                timeZoneInfo: TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"));
+
+        // Act
+        await UseLoggerAndWaitALittleBit(loggerConfiguration, async logger =>
+        {
+            logger.Information(_largeMessage);
+
+            await Task.Delay(ageLimit + _shortInterval * 5);
+
+            logger.Information(_largeMessage);
+
+            await Task.Delay(ageLimit + _shortInterval * 5);
+
+            logger.Information(_largeMessage);
+
+            await Task.Delay(ageLimit + _shortInterval * 5);
         });
 
         // Assert
@@ -138,7 +174,7 @@ public class FileRotationTests : TestBase
         {
             logger.Information(_largeMessage);
 
-            await Task.Delay(_shortInterval * 2);
+            await Task.Delay(_shortInterval * 5);
         });
 
         // Assert
