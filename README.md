@@ -87,10 +87,22 @@ There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/seril
 
 `Serilog.Sinks.BetterSqlite` fixes all of these issues.
 
+## Performance
+
+Issuing a log event with Serilog’s `Log.Logger.Information`, `Log.Logger.Warning`, etc. is effectively free from the caller’s perspective: the call always returns immediately. A background task accumulates the log events and writes them to the SQLite database according to the batching configuration (by default, every 2 seconds or once 1000 log events are queued, whichever comes first).
+
+The throughput of this background task depends on the batch size, the size of the log events, and your hardware:
+
+- With a batch size of `1` (writing each log individually), you can expect a few hundred log events per second.
+- With larger batch sizes (e.g. `1000`), throughput can easily reach tens of thousands of log events per second.
+
+Regardless of batch size, issuing a log event will not block your application’s execution, since the work is performed asynchronously in the background.
+
+[See the wiki](https://github.com/ihavenonickname/Serilog.Sinks.BetterSqlite/wiki) for in-depth guidance on tuning batching for your scenario.
+
 ## Roadmap
 
 - Store log event properties
-- Add benchmark tests
 - Write wiki
 - Publish project on NuGet
 
