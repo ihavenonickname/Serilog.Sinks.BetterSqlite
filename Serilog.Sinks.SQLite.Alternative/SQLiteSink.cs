@@ -23,6 +23,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
     private readonly SqliteConnection _connection;
     private readonly SqliteCommand _insertLogCommand;
     private readonly SqliteCommand _insertExceptionCommand;
+    private readonly SqliteCommand _selectOldestLogTimestamp;
     private readonly FileInfo _databaseFile;
     private readonly Task? _taskRetention;
     private readonly Task? _taskRotation;
@@ -109,6 +110,9 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
             insert into exceptions (log_id, type, message, stacktrace, source)
             values ($log_id, $type, $message, $stacktrace, $source);
         ";
+
+        _selectOldestLogTimestamp = _connection.CreateCommand();
+        _selectOldestLogTimestamp.CommandText = "select min(timestamp) from logs;";
 
         if (_retentionFileCountLimit is not null)
         {
@@ -275,11 +279,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
         if (_fileRotationAgeLimit is not null)
         {
-            await using var command = _connection.CreateCommand();
-
-            command.CommandText = "select min(timestamp) from logs;";
-
-            var reader = await command.ExecuteReaderAsync(_cts.Token);
+            await using var reader = await _selectOldestLogTimestamp.ExecuteReaderAsync(_cts.Token);
 
             if (await reader.ReadAsync(_cts.Token) && !reader.IsDBNull(0) && now.Subtract(reader.GetDateTimeOffset(0)) > _fileRotationAgeLimit)
             {
