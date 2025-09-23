@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Serilog.Sinks.SQLite.Alternative.Tests.Integration;
+namespace Serilog.Sinks.BetterSqlite.Tests.Integration;
 
 public class MicrosoftLoggerTests : TestBase
 {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Serilog.Sinks.SQLite.Alternative.Tests.Integration;
+namespace Serilog.Sinks.BetterSqlite.Tests.Integration;
 
 public class FileRetentionTests : TestBase
 {

@@ -7,7 +7,7 @@ using Microsoft.Data.Sqlite;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Serilog.Sinks.SQLite.Alternative;
+namespace Serilog.Sinks.BetterSqlite;
 
 internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 {

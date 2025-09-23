@@ -6,7 +6,7 @@ using Microsoft.Data.Sqlite;
 using Serilog.Configuration;
 using Serilog.Core;
 
-namespace Serilog.Sinks.SQLite.Alternative.Tests.Integration;
+namespace Serilog.Sinks.BetterSqlite.Tests.Integration;
 
 public abstract class TestBase
 {

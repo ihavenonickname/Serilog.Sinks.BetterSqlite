@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Serilog.Sinks.SQLite.Alternative\Serilog.Sinks.SQLite.Alternative.csproj" />
+    <ProjectReference Include="..\Serilog.Sinks.BetterSqlite\Serilog.Sinks.BetterSqlite.csproj" />
   </ItemGroup>
 
 </Project>

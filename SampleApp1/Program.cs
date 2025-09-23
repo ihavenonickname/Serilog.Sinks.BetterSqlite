@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Sinks.SQLite.Alternative;
+using Serilog.Sinks.BetterSqlite;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
