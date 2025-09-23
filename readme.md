@@ -31,15 +31,8 @@ Here's a quick ASP.NET app example:
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-var serilogBatchingOptions = new BatchingOptions()
-{
-    BatchSizeLimit = 1,
-};
-
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.SQLite(
-        logDirectory: new(Directory.GetCurrentDirectory()),
-        batchingOptions: serilogBatchingOptions)
+    .WriteTo.SQLite(databaseFile: new FileInfo("myapp-logs.db"))
     .CreateLogger();
 
 builder.Logging.AddSerilog();
@@ -57,11 +50,13 @@ app.MapGet("/", (ILogger<Program> logger) =>
 });
 
 app.Run();
+
+Log.CloseAndFlush();
 ```
 
-Once you run the app, it creates a SQLite database inside the current working directory.
+Once you run the app, it creates a SQLite database file named `myapp-logs.db` inside the current working directory.
 
-Of course, that's just a tiny example. Take a look at the documentation to see more!
+Of course, that's just the tiniest example. Take a look at the documentation to see more!
 
 ## Documentation
 
@@ -89,12 +84,11 @@ There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/seril
 
 ## Roadmap
 
-- [ ] Make database file name be configurable
-- [ ] Store log event properties
-- [ ] Add benchmark tests
-- [ ] Wirte xmldoc documentation
-- [ ] Write wiki
-- [ ] Publish project on NuGet
+- Store log event properties
+- Add benchmark tests
+- Wirte xmldoc documentation
+- Write wiki
+- Publish project on NuGet
 
 ## License
 

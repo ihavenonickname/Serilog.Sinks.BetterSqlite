@@ -15,20 +15,18 @@ public class BasicTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions);
 
         // Act
         await UseLoggerAndWaitALittleBit(loggerConfiguration, _ => Task.CompletedTask);
 
         // Assert
-        Assert.True(_logDirectory.Exists);
-        Assert.Empty(_logDirectory.EnumerateDirectories());
+        Assert.NotNull(_databaseFile.Directory);
+        Assert.True(_databaseFile.Exists);
+        Assert.Empty(_databaseFile.Directory.EnumerateDirectories());
 
-        var files = _logDirectory.EnumerateFiles().ToArray();
-
-        Assert.Single(files);
-        Assert.Equal(".db", files[0].Extension);
+        var files = _databaseFile.Directory.EnumerateFiles().ToArray();
 
         using var command = new SqliteCommand
         {
@@ -47,7 +45,7 @@ public class BasicTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions);
 
         // Act
@@ -88,7 +86,7 @@ public class BasicTests : TestBase
         var loggerConfiguration = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions);
 
         // Act
@@ -130,7 +128,7 @@ public class BasicTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions);
 
         // Act
@@ -168,7 +166,7 @@ public class BasicTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions);
 
         var activity = new Activity("dummy");
@@ -216,7 +214,7 @@ public class BasicTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions);
 
         var exception = new InvalidOperationException(

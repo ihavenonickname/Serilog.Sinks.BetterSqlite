@@ -20,14 +20,14 @@ public class FileRetentionTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
                 retentionFileCountLimit: retentionFileCountLimit,
                 retentionInterval: _shortInterval);
 
         for (var i = 0; i < backupFilesToCreate; i++)
         {
-            File.Create(Path.Combine(_logDirectory.FullName, $"serilog-logs-{i}.db.backup"));
+            _databaseFile.CopyTo($"backup-{i}-{_databaseFile.Name}");
 
             await Task.Delay(TimeSpan.FromMilliseconds(5));
         }
@@ -38,8 +38,10 @@ public class FileRetentionTests : TestBase
             await Task.Delay(_shortInterval * 2);
         });
 
-        // Arrange
-        var backupFiles = _logDirectory.GetFiles("*.db.backup");
+        // Assert
+        Assert.NotNull(_databaseFile.Directory);
+
+        var backupFiles = _databaseFile.Directory.GetFiles($"backup-*-{_databaseFile.Name}");
 
         Assert.True(backupFiles.Length <= retentionFileCountLimit);
     }

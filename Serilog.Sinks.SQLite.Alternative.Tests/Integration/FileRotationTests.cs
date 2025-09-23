@@ -17,7 +17,7 @@ public class FileRotationTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
                 fileRotationSizeLimit: _oneMegabyte,
                 fileRotationInterval: _shortInterval);
@@ -49,7 +49,9 @@ public class FileRotationTests : TestBase
         });
 
         // Assert
-        var backupFiles = _logDirectory.GetFiles("*.db.backup");
+        Assert.NotNull(_databaseFile.Directory);
+
+        var backupFiles = _databaseFile.Directory.GetFiles($"backup-*-{_databaseFile.Name}");
 
         Assert.Equal(3, backupFiles.Length);
     }
@@ -60,7 +62,7 @@ public class FileRotationTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
                 fileRotationSizeLimit: _oneMegabyte,
                 fileRotationInterval: _shortInterval);
@@ -82,7 +84,9 @@ public class FileRotationTests : TestBase
         });
 
         // Assert
-        Assert.Empty(_logDirectory.GetFiles("*.db.backup"));
+        Assert.NotNull(_databaseFile.Directory);
+
+        Assert.Empty(_databaseFile.Directory.GetFiles($"backup-*-{_databaseFile.Name}"));
     }
 
     [Fact]
@@ -93,7 +97,7 @@ public class FileRotationTests : TestBase
 
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
                 fileRotationAgeLimit: ageLimit,
                 fileRotationInterval: _shortInterval);
@@ -115,7 +119,9 @@ public class FileRotationTests : TestBase
         });
 
         // Assert
-        var backupFiles = _logDirectory.GetFiles("*.db.backup");
+        Assert.NotNull(_databaseFile.Directory);
+
+        var backupFiles = _databaseFile.Directory.GetFiles($"backup-*-{_databaseFile.Name}");
 
         Assert.Equal(3, backupFiles.Length);
     }
@@ -128,7 +134,7 @@ public class FileRotationTests : TestBase
 
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
                 fileRotationAgeLimit: ageLimit,
                 fileRotationInterval: _shortInterval,
@@ -151,7 +157,9 @@ public class FileRotationTests : TestBase
         });
 
         // Assert
-        var backupFiles = _logDirectory.GetFiles("*.db.backup");
+        Assert.NotNull(_databaseFile.Directory);
+
+        var backupFiles = _databaseFile.Directory.GetFiles($"backup-*-{_databaseFile.Name}");
 
         Assert.Equal(3, backupFiles.Length);
     }
@@ -164,7 +172,7 @@ public class FileRotationTests : TestBase
 
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
                 fileRotationAgeLimit: ageLimit,
                 fileRotationInterval: _shortInterval);
@@ -178,6 +186,8 @@ public class FileRotationTests : TestBase
         });
 
         // Assert
-        Assert.Empty(_logDirectory.GetFiles("*.db.backup"));
+        Assert.NotNull(_databaseFile.Directory);
+
+        Assert.Empty(_databaseFile.Directory.GetFiles($"backup-*-{_databaseFile.Name}"));
     }
 }

@@ -13,7 +13,7 @@ public class TimeZoneTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions);
 
         // Act
@@ -47,7 +47,7 @@ public class TimeZoneTests : TestBase
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
                 timeZoneInfo: TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"));
 

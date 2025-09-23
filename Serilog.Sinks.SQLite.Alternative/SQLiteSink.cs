@@ -11,7 +11,7 @@ namespace Serilog.Sinks.SQLite.Alternative;
 
 internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 {
-    private readonly DirectoryInfo _logDirectory;
+    private readonly FileInfo _databaseFile;
     private readonly TimeZoneInfo _timeZoneInfo;
     private readonly TimeSpan? _fileRotationAgeLimit;
     private readonly long? _fileRotationSizeLimit;
@@ -20,11 +20,11 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
     private readonly TimeSpan _retentionInterval;
     private readonly IFormatProvider? _formatProvider;
 
+    private readonly DirectoryInfo _databaseDirectory;
     private readonly SqliteConnection _connection;
     private readonly SqliteCommand _insertLogCommand;
     private readonly SqliteCommand _insertExceptionCommand;
     private readonly SqliteCommand _selectOldestLogTimestamp;
-    private readonly FileInfo _databaseFile;
     private readonly Task? _taskRetention;
     private readonly Task? _taskRotation;
 
@@ -32,7 +32,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
     private readonly CancellationTokenSource _cts = new();
 
     internal SQLiteSink(
-        DirectoryInfo logDirectory,
+        FileInfo databaseFile,
         TimeZoneInfo timeZoneInfo,
         TimeSpan? fileRotationAgeLimit,
         long? fileRotationSizeLimit,
@@ -41,7 +41,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
         TimeSpan retentionInterval,
         IFormatProvider? formatProvider)
     {
-        _logDirectory = logDirectory;
+        _databaseFile = databaseFile;
         _timeZoneInfo = timeZoneInfo;
         _fileRotationAgeLimit = fileRotationAgeLimit;
         _fileRotationSizeLimit = fileRotationSizeLimit;
@@ -50,16 +50,18 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
         _retentionInterval = retentionInterval;
         _formatProvider = formatProvider;
 
-        _logDirectory.Create();
+        if (_databaseFile.Directory is null)
+        {
+            throw new ArgumentException("Could not find the database directory");
+        }
 
-        _databaseFile = new(Path.Combine(_logDirectory.FullName, "serilog-logs.db"));
+        _databaseDirectory = _databaseFile.Directory;
+        _databaseDirectory.Create();
 
-        var connectionStringBuilder = new SqliteConnectionStringBuilder()
+        _connection = new(new SqliteConnectionStringBuilder()
         {
             DataSource = _databaseFile.FullName,
-        };
-
-        _connection = new(connectionStringBuilder.ConnectionString);
+        }.ConnectionString);
 
         _connection.Open();
 
@@ -247,7 +249,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
     private void CheckAndApplyRetention()
     {
-        var backupFiles = _logDirectory.GetFiles("*.db.backup");
+        var backupFiles = _databaseDirectory.GetFiles($"backup-*-{_databaseFile.Name}");
 
         var filesToDelete = backupFiles.Length - _retentionFileCountLimit;
 
@@ -306,7 +308,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
         }
 
         var timestamp = now.ToString("yyyy_MM_dd_HH_mm_ss_fff");
-        var backupFullPath = Path.Combine(_logDirectory.FullName, $"serilog-logs-{timestamp}.db.backup").Replace("'", "''");
+        var backupFullPath = Path.Combine(_databaseDirectory.FullName, $"backup-{timestamp}-{_databaseFile.Name}").Replace("'", "''");
 
         try
         {

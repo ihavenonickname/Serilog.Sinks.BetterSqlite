@@ -10,7 +10,7 @@ namespace Serilog.Sinks.SQLite.Alternative.Tests.Integration;
 
 public abstract class TestBase
 {
-    protected readonly DirectoryInfo _logDirectory;
+    protected readonly FileInfo _databaseFile;
     protected readonly BatchingOptions _batchingOptions = new()
     {
         BatchSizeLimit = 1,
@@ -18,7 +18,9 @@ public abstract class TestBase
 
     public TestBase()
     {
-        _logDirectory = new(Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}"));
+        var guid = Guid.NewGuid();
+
+        _databaseFile = new(Path.Combine(Path.GetTempPath(), $"{guid}", $"serilog-sinks-bettersqlite-{guid}.db"));
     }
 
     protected async Task UseLoggerAndWaitALittleBit(LoggerConfiguration loggerConfiguration, Func<Logger, Task> useLogger)
@@ -37,7 +39,7 @@ public abstract class TestBase
         {
             ConnectionString = new SqliteConnectionStringBuilder()
             {
-                DataSource = _logDirectory.EnumerateFiles("*.db").First().FullName
+                DataSource = _databaseFile.FullName
             }.ConnectionString
         };
 

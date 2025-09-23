@@ -18,7 +18,7 @@ public class MicrosoftLoggerTests : TestBase
 
         Log.Logger = new LoggerConfiguration()
             .WriteTo.SQLite(
-                logDirectory: _logDirectory,
+                databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions)
             .CreateLogger();
 

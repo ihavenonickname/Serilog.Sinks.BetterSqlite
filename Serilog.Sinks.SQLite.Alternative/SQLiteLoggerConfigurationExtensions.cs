@@ -10,7 +10,7 @@ public static class SQLiteLoggerConfigurationExtensions
 {
     public static LoggerConfiguration SQLite(
         this LoggerSinkConfiguration sinkConfiguration,
-        DirectoryInfo? logDirectory = null,
+        FileInfo databaseFile,
         TimeZoneInfo? timeZoneInfo = null,
         TimeSpan? fileRotationAgeLimit = null,
         long? fileRotationSizeLimit = null,
@@ -23,7 +23,7 @@ public static class SQLiteLoggerConfigurationExtensions
         LoggingLevelSwitch? levelSwitch = null)
     {
         var sink = new SQLiteSink(
-            logDirectory ?? new(Path.Join(Directory.GetCurrentDirectory(), "logs")),
+            databaseFile,
             timeZoneInfo ?? TimeZoneInfo.Utc,
             fileRotationAgeLimit,
             fileRotationSizeLimit,
