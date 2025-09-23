@@ -91,7 +91,6 @@ There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/seril
 
 - Store log event properties
 - Add benchmark tests
-- Wirte xmldoc documentation
 - Write wiki
 - Publish project on NuGet
 
