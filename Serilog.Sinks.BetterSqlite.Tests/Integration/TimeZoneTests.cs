@@ -41,15 +41,22 @@ public class TimeZoneTests : TestBase
         });
     }
 
-    [Fact]
-    public async Task SinkAppliesConfiguredTimezone()
+    [Theory]
+    [InlineData("America/Sao_Paulo")]
+    [InlineData("Asia/Tokyo")]
+    [InlineData("Europe/London")]
+    [InlineData("America/New_York")]
+    [InlineData("Australia/Sydney")]
+    public async Task SinkAppliesConfiguredTimezone(string timezoneId)
     {
         // Arrange
+        var timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timezoneId);
+
         var loggerConfiguration = new LoggerConfiguration()
             .WriteTo.SQLite(
                 databaseFile: _databaseFile,
                 batchingOptions: _batchingOptions,
-                timeZoneInfo: TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo"));
+                timeZoneInfo: timeZoneInfo);
 
         // Act
         await UseLoggerAndWaitALittleBit(loggerConfiguration, logger =>
@@ -72,7 +79,7 @@ public class TimeZoneTests : TestBase
             var dateTimeOffset = reader.GetDateTimeOffset(0);
 
             Assert.Equal(DateTime.UtcNow, dateTimeOffset.UtcDateTime, TimeSpan.FromSeconds(5));
-            Assert.Equal(TimeSpan.FromHours(-3), dateTimeOffset.Offset);
+            Assert.Equal(timeZoneInfo.GetUtcOffset(DateTime.UtcNow), dateTimeOffset.Offset);
         });
     }
 }

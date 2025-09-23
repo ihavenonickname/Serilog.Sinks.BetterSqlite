@@ -176,9 +176,9 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
             foreach (var logEvent in batch)
             {
-                var dt = TimeZoneInfo.ConvertTimeFromUtc(logEvent.Timestamp.UtcDateTime, _timeZoneInfo);
+                var convertedDateTimeOffset = logEvent.Timestamp.ToOffset(_timeZoneInfo.GetUtcOffset(logEvent.Timestamp.UtcDateTime));
 
-                _insertLogCommand.Parameters["$timestamp"].Value = dt.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz");
+                _insertLogCommand.Parameters["$timestamp"].Value = convertedDateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz");
                 _insertLogCommand.Parameters["$level"].Value = Enum.GetName(logEvent.Level);
                 _insertLogCommand.Parameters["$message_template"].Value = logEvent.MessageTemplate.Text;
                 _insertLogCommand.Parameters["$message"].Value = logEvent.RenderMessage(_formatProvider);
