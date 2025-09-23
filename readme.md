@@ -1,6 +1,6 @@
-# Serilog.Sinks.SQLite.Alternative
+# Serilog.Sinks.BetterSqlite
 
-The Serilog.Sinks.SQLite.Alternative sink provides a robust and flexible mechanism for logging Serilog events directly into a SQLite database. Its design balances performance, configurability, and maintainability.
+The Serilog.Sinks.BetterSqlite sink provides a robust and flexible mechanism for logging Serilog events directly into a SQLite database. Its design balances performance, configurability, and maintainability.
 
 > **Important note**
 >
@@ -18,10 +18,10 @@ The Serilog.Sinks.SQLite.Alternative sink provides a robust and flexible mechani
 
 ## Getting started
 
-Install the [Serilog.Sinks.SQLite.Alternative package](https://www.nuget.org/packages/Serilog.Sinks.SQLite.Alternative/) from NuGet:
+Install the [Serilog.Sinks.BetterSqlite package](https://www.nuget.org/packages/Serilog.Sinks.BetterSqlite/) from NuGet:
 
 ```bash
-dotnet add package Serilog.Sinks.SQLite.Alternative
+dotnet add package Serilog.Sinks.BetterSqlite
 ```
 
 Then use in your application [like any other Serilog sink](https://github.com/serilog/serilog/wiki/Configuration-Basics#sinks).
@@ -62,11 +62,11 @@ Of course, that's just the tiniest example. Take a look at the documentation to 
 
 The project wiki contains everything you need to know to use this library, including complete sample applications that you can use for reference.
 
-- https://github.com/ihavenonickname/Serilog.Sinks.Sqlite.Alternative/wiki
+- https://github.com/ihavenonickname/Serilog.Sinks.BetterSqlite/wiki
 
 ## Why not `Serilog.Sinks.SQLite`?
 
-There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/serilog-sinks-sqlite) that is older and more popular than this one. So, why should you use `Serilog.Sinks.SQLite.Alternative` instead?
+There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/serilog-sinks-sqlite) that is older and more popular than this one. So, why should you use `Serilog.Sinks.BetterSqlite` instead?
 
 - `Serilog.Sinks.SQLite` is abandoned:
     - Latest commit is over 2 years old as of the time of the writing
@@ -80,7 +80,7 @@ There is [another Serilig sink for SQLite](https://github.com/saleem-mirza/seril
     - Uses blocking APIs instead of asynchronous APIs
     - Implements its own batching mechanism instead of using Serilog's official batching API
 
-`Serilog.Sinks.SQLite.Alternative` fixes all of these issues.
+`Serilog.Sinks.BetterSqlite` fixes all of these issues.
 
 ## Roadmap
 
