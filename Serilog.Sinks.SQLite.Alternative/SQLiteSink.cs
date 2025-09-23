@@ -24,8 +24,8 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
     private readonly SqliteCommand _insertLogCommand;
     private readonly SqliteCommand _insertExceptionCommand;
     private readonly FileInfo _databaseFile;
-    private readonly Task _taskRetention;
-    private readonly Task _taskRotation;
+    private readonly Task? _taskRetention;
+    private readonly Task? _taskRotation;
 
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly CancellationTokenSource _cts = new();
@@ -110,43 +110,49 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
             values ($log_id, $type, $message, $stacktrace, $source);
         ";
 
-        _taskRetention = Task.Run(async () =>
+        if (_retentionFileCountLimit is not null)
         {
-            while (!_cts.IsCancellationRequested)
+            _taskRetention = Task.Run(async () =>
             {
-                await _semaphore.WaitAsync(_cts.Token);
-
-                try
+                while (!_cts.IsCancellationRequested)
                 {
-                    CheckAndApplyRetention();
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
+                    await _semaphore.WaitAsync(_cts.Token);
 
-                await Task.Delay(_retentionInterval, _cts.Token);
-            }
-        });
+                    try
+                    {
+                        CheckAndApplyRetention();
+                    }
+                    finally
+                    {
+                        _semaphore.Release();
+                    }
 
-        _taskRotation = Task.Run(async () =>
+                    await Task.Delay(_retentionInterval, _cts.Token);
+                }
+            });
+        }
+
+        if (_fileRotationAgeLimit is not null || _fileRotationSizeLimit is not null)
         {
-            while (!_cts.IsCancellationRequested)
+            _taskRotation = Task.Run(async () =>
             {
-                await _semaphore.WaitAsync(_cts.Token);
-
-                try
+                while (!_cts.IsCancellationRequested)
                 {
-                    await CheckAndApplyRotation();
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
+                    await _semaphore.WaitAsync(_cts.Token);
 
-                await Task.Delay(_fileRotationInterval, _cts.Token);
-            }
-        });
+                    try
+                    {
+                        await CheckAndApplyRotation();
+                    }
+                    finally
+                    {
+                        _semaphore.Release();
+                    }
+
+                    await Task.Delay(_fileRotationInterval, _cts.Token);
+                }
+            });
+        }
     }
 
     public async Task EmitBatchAsync(IReadOnlyCollection<LogEvent> batch)
@@ -206,14 +212,14 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
         try
         {
-            _taskRotation.Wait();
+            _taskRotation?.Wait();
         }
         catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
         { }
 
         try
         {
-            _taskRetention.Wait();
+            _taskRetention?.Wait();
         }
         catch (AggregateException ex) when (ex.InnerException is TaskCanceledException)
         { }
@@ -229,19 +235,14 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
             _semaphore.Release();
         }
 
-        _taskRotation.Dispose();
-        _taskRetention.Dispose();
+        _taskRotation?.Dispose();
+        _taskRetention?.Dispose();
         _semaphore.Dispose();
         _cts.Dispose();
     }
 
     private void CheckAndApplyRetention()
     {
-        if (_retentionFileCountLimit is null)
-        {
-            return;
-        }
-
         var backupFiles = _logDirectory.GetFiles("*.db.backup");
 
         var filesToDelete = backupFiles.Length - _retentionFileCountLimit;
