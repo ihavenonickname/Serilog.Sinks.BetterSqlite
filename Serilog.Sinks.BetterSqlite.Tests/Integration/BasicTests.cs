@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Serilog.Context;
 using Xunit;
 
 namespace Serilog.Sinks.BetterSqlite.Tests.Integration;
@@ -135,7 +137,8 @@ public class BasicTests : TestBase
         await UseLoggerAndWaitALittleBit(loggerConfiguration, logger =>
         {
             logger.Information("test 1");
-            logger.Information("test {SomeArgument}", 2);
+            logger.Information("test 2 {Username:l}", "someuser");
+            logger.Information("test 3 {Username:j}", "someuser");
 
             return Task.CompletedTask;
         });
@@ -153,8 +156,12 @@ public class BasicTests : TestBase
             Assert.Equal("test 1", reader.GetString(1));
 
             Assert.True(reader.Read());
-            Assert.Equal("test 2", reader.GetString(0));
-            Assert.Equal("test {SomeArgument}", reader.GetString(1));
+            Assert.Equal("test 2 someuser", reader.GetString(0));
+            Assert.Equal("test 2 {Username:l}", reader.GetString(1));
+
+            Assert.True(reader.Read());
+            Assert.Equal(@"test 3 ""someuser""", reader.GetString(0));
+            Assert.Equal("test 3 {Username:j}", reader.GetString(1));
 
             Assert.False(reader.Read());
         });
@@ -209,7 +216,7 @@ public class BasicTests : TestBase
     }
 
     [Fact]
-    public async Task LogsStoreExceptionsIfAvailable()
+    public async Task LogsStoreExceptions()
     {
         // Arrange
         var loggerConfiguration = new LoggerConfiguration()
@@ -248,6 +255,68 @@ public class BasicTests : TestBase
             Assert.Equal(1, reader.GetInt64(1));
             Assert.Equal(exception.InnerException!.GetType().FullName, reader.GetString(2));
             Assert.Equal(exception.InnerException.Message, reader.GetString(3));
+
+            Assert.False(reader.Read());
+        });
+    }
+
+    [Fact]
+    public async Task LogsStoreProperties()
+    {
+        // Arrange
+        var loggerConfiguration = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Prop1", new Dictionary<string, object>()
+            {
+                { "KeyA", "some\nmultiline\ntext" }
+            }, true)
+            .Enrich.WithProperty("Prop2", 2)
+            .WriteTo.SQLite(
+                databaseFile: _databaseFile,
+                batchingOptions: _batchingOptions);
+
+        // Act
+        await UseLoggerAndWaitALittleBit(loggerConfiguration, logger =>
+        {
+            using (LogContext.PushProperty("Prop3", 3.1))
+            {
+                logger.Information("Some message {@Prop4}", new
+                {
+                    Key1 = 1,
+                    Key2 = "value two",
+                });
+            }
+
+            return Task.CompletedTask;
+        });
+
+        // Assert
+        using var command = new SqliteCommand
+        {
+            CommandText = "select log_id, key, value from properties order by key"
+        };
+
+        ExecuteSelect(command, reader =>
+        {
+            Assert.True(reader.Read());
+            Assert.Equal(1, reader.GetInt64(0));
+            Assert.Equal("Prop1", reader.GetString(1));
+            Assert.Equal("{\"KeyA\":\"some\\nmultiline\\ntext\"}", reader.GetString(2));
+
+            Assert.True(reader.Read());
+            Assert.Equal(1, reader.GetInt64(0));
+            Assert.Equal("Prop2", reader.GetString(1));
+            Assert.Equal("2", reader.GetString(2));
+
+            Assert.True(reader.Read());
+            Assert.Equal(1, reader.GetInt64(0));
+            Assert.Equal("Prop3", reader.GetString(1));
+            Assert.Equal("3.1", reader.GetString(2));
+
+            Assert.True(reader.Read());
+            Assert.Equal(1, reader.GetInt64(0));
+            Assert.Equal("Prop4", reader.GetString(1));
+            Assert.Equal("{\"Key1\":1,\"Key2\":\"value two\"}", reader.GetString(2));
 
             Assert.False(reader.Read());
         });

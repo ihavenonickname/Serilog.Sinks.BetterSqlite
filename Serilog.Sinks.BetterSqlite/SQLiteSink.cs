@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Serilog.Core;
+using Serilog.Debugging;
 using Serilog.Events;
+using Serilog.Formatting.Json;
 
 namespace Serilog.Sinks.BetterSqlite;
 
@@ -24,12 +27,15 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
     private readonly SqliteConnection _connection;
     private readonly SqliteCommand _insertLogCommand;
     private readonly SqliteCommand _insertExceptionCommand;
+    private readonly SqliteCommand _insertPropertyCommand;
     private readonly SqliteCommand _selectOldestLogTimestamp;
     private readonly Task? _taskRetention;
     private readonly Task? _taskRotation;
 
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly CancellationTokenSource _cts = new();
+    private readonly JsonValueFormatter _jsonValueFormatter = new();
+    private readonly StringBuilder _propertyBuffer = new();
 
     internal SQLiteSink(
         FileInfo databaseFile,
@@ -84,8 +90,18 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
                 type text not null,
                 message text not null,
                 stacktrace text,
-                source text
-            )";
+                source text,
+                foreign key (log_id) references logs (id)
+            );
+
+            create table if not exists properties (
+                id integer primary key autoincrement,
+                log_id integer not null,
+                key text not null,
+                value text,
+                foreign key (log_id) references logs (id)
+            );
+            ";
 
         command.ExecuteNonQuery();
 
@@ -111,6 +127,15 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
         _insertExceptionCommand.CommandText = @"
             insert into exceptions (log_id, type, message, stacktrace, source)
             values ($log_id, $type, $message, $stacktrace, $source);
+        ";
+
+        _insertPropertyCommand = _connection.CreateCommand();
+        _insertPropertyCommand.Parameters.Add("$log_id", SqliteType.Integer);
+        _insertPropertyCommand.Parameters.Add("$key", SqliteType.Text);
+        _insertPropertyCommand.Parameters.Add("$value", SqliteType.Text);
+        _insertPropertyCommand.CommandText = @"
+            insert into properties (log_id, key, value)
+            values ($log_id, $key, $value);
         ";
 
         _selectOldestLogTimestamp = _connection.CreateCommand();
@@ -173,6 +198,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
             _insertLogCommand.Transaction = transaction;
             _insertExceptionCommand.Transaction = transaction;
+            _insertPropertyCommand.Transaction = transaction;
 
             foreach (var logEvent in batch)
             {
@@ -184,6 +210,8 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
                 _insertLogCommand.Parameters["$message"].Value = logEvent.RenderMessage(_formatProvider);
                 _insertLogCommand.Parameters["$span_id"].Value = (object?)logEvent.SpanId?.ToString() ?? DBNull.Value;
                 _insertLogCommand.Parameters["$trace_id"].Value = (object?)logEvent.TraceId?.ToString() ?? DBNull.Value;
+
+                _propertyBuffer.Clear();
 
                 var logId = await _insertLogCommand.ExecuteScalarAsync(_cts.Token);
 
@@ -197,9 +225,28 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
                     await _insertExceptionCommand.ExecuteNonQueryAsync(_cts.Token);
                 }
+
+                foreach (var property in logEvent.Properties)
+                {
+                    using StringWriter writer = new(_propertyBuffer);
+
+                    _jsonValueFormatter.Format(property.Value, writer);
+
+                    _insertPropertyCommand.Parameters["$log_id"].Value = logId;
+                    _insertPropertyCommand.Parameters["$key"].Value = property.Key;
+                    _insertPropertyCommand.Parameters["$value"].Value = _propertyBuffer.ToString();
+
+                    await _insertPropertyCommand.ExecuteNonQueryAsync(_cts.Token);
+
+                    _propertyBuffer.Clear();
+                }
             }
 
             await transaction.CommitAsync(_cts.Token);
+        }
+        catch (Exception ex)
+        {
+            SelfLog.WriteLine("Exception processing logEvents: {0}", ex);
         }
         finally
         {
@@ -268,7 +315,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
             }
             catch (Exception ex)
             {
-                Debugging.SelfLog.WriteLine("Failed to delete backup file {0}: {1}", backupFiles[i].FullName, ex);
+                SelfLog.WriteLine("Failed to delete backup file {0}: {1}", backupFiles[i].FullName, ex);
             }
         }
     }
@@ -285,7 +332,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
             if (await reader.ReadAsync(_cts.Token) && !reader.IsDBNull(0) && now.Subtract(reader.GetDateTimeOffset(0)) > _fileRotationAgeLimit)
             {
-                Debugging.SelfLog.WriteLine("Rotating file due to age limit");
+                SelfLog.WriteLine("Rotating file due to age limit");
 
                 shouldRotate = true;
             }
@@ -296,7 +343,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
 
             if (_databaseFile.Length > _fileRotationSizeLimit)
             {
-                Debugging.SelfLog.WriteLine("Rotating file due to size limit");
+                SelfLog.WriteLine("Rotating file due to size limit");
 
                 shouldRotate = true;
             }
@@ -339,7 +386,7 @@ internal class SQLiteSink : IBatchedLogEventSink, IDisposable
         }
         catch (Exception ex)
         {
-            Debugging.SelfLog.WriteLine("Error rotating database: {0}", ex);
+            SelfLog.WriteLine("Error rotating database: {0}", ex);
         }
     }
 }

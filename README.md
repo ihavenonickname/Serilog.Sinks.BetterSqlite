@@ -102,7 +102,6 @@ Regardless of batch size, issuing a log event will not block your application’
 
 ## Roadmap
 
-- Store log event properties
 - Write wiki
 - Publish project on NuGet
 
