@@ -43,13 +43,13 @@ public class LogsPerSecondColumn : IColumn
 }
 
 [WarmupCount(1)]
-[IterationCount(3)]
-[InvocationCount(1)]
+[IterationCount(5)]
+[InvocationCount(5)]
 public class BetterSqliteBenchmarks
 {
-    public const int LOGS_PER_ITER = 5000;
+    public const int LOGS_PER_ITER = 5_000;
 
-    [Params(1, 100, 1000)]
+    [Params(100, 1000)]
     public int BatchSize;
 
     private string _databaseFilePath = null!;
@@ -68,7 +68,6 @@ public class BetterSqliteBenchmarks
             BatchSizeLimit = BatchSize,
             QueueLimit = null,
             BufferingTimeLimit = TimeSpan.FromDays(1),
-            EagerlyEmitFirstEvent = false,
         };
 
         Log.Logger = new LoggerConfiguration()
@@ -78,12 +77,12 @@ public class BetterSqliteBenchmarks
             .CreateLogger();
     }
 
-    [Benchmark(Description = "Log 5k messages")]
+    [Benchmark(Description = "Log 50k messages")]
     public async Task LogInformation()
     {
         for (var i = 0; i < LOGS_PER_ITER; i++)
         {
-            Log.Logger.Information("User {User} logged in at {Now}", "user@user.com", DateTime.UtcNow);
+            Log.Logger.Information("User {@User} logged in at {@Now}", "user@user.com", DateTime.UtcNow);
         }
 
         await Log.CloseAndFlushAsync();

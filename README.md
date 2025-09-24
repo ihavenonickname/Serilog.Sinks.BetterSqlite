@@ -91,7 +91,7 @@ Issuing a log event with Serilog’s `Log.Logger.Information`, `Log.Logger.Warni
 The throughput of this background task depends on the batch size, the size of the log events, and your hardware:
 
 - With a batch size of `1` (writing each log individually), you can expect a few hundred log events per second.
-- With larger batch sizes (e.g. `1000`), throughput can easily reach tens of thousands of log events per second.
+- With larger batch sizes (e.g. `1000`), throughput can easily reach hundreds of thousands of log events per second.
 
 Regardless of batch size, issuing a log event will not block your application’s execution, since the work is performed asynchronously in the background.
 
