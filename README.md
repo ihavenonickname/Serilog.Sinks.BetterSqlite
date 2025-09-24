@@ -2,7 +2,6 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![.NET](https://img.shields.io/badge/.NET-6.0%20%7C%207.0%20%7C%208.0-blue)
-[![Build](https://github.com/ihavenonickname/Serilog.Sinks.BetterSqlite/actions/workflows/build.yml/badge.svg)](https://github.com/ihavenonickname/Serilog.Sinks.BetterSqlite/actions/workflows/build.yml)
 [![codecov](https://codecov.io/github/ihavenonickname/Serilog.Sinks.BetterSqlite/graph/badge.svg?token=KLJHWCJVYF)](https://codecov.io/github/ihavenonickname/Serilog.Sinks.BetterSqlite)
 
 The Serilog.Sinks.BetterSqlite sink provides a robust and flexible mechanism for logging Serilog events directly into a SQLite database. Its design balances performance, configurability, and maintainability.
@@ -65,9 +64,7 @@ Of course, that's just the tiniest example. Take a look at the documentation to 
 
 ## Documentation
 
-The project wiki contains everything you need to know to use this library, including complete sample applications that you can use for reference.
-
-- https://github.com/ihavenonickname/Serilog.Sinks.BetterSqlite/wiki
+The [project wiki](https://github.com/ihavenonickname/Serilog.Sinks.BetterSqlite/wiki) contains everything you need to know to use this library, including complete sample applications that you can use for reference.
 
 ## Why not `Serilog.Sinks.SQLite`?
 
